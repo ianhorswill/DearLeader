@@ -1,11 +1,18 @@
-introduce_relationship(P, L : character, lovers(P, L)) : (P \= L, compatibility(P, L, C)) ==>
+story : (
+	 theme(love),
+	 genre(love_story)
+	) ==>
+   loss_and_redemption_story(P, L, lovers(P, L)).
+
+introduce_relationship(P, L, lovers(P, L)) : compatibility(P, L, C) ==>
    meet(P, L, _),
    fall_in_love(P, L, C),
    time_passes.
 
-break_relationship(P, L, lovers(P, L)) : (P \= L, incompatibility(P, L, I)) ==>
+break_relationship(P, L, lovers(P, L)) : incompatibility(P, L, I) ==>
    break_up_over(L, P, I),
-   distraught(P).
+   %distraught(P).
+   montage(depression_scene(P, loss_of_person(L)), 3).
 
 restore_relationship(P, L, lovers(P, L)) ==>
    reunite(P, L).
@@ -42,6 +49,10 @@ beat(love_develops(A, B) : { add: lovers(A, B) },
 
 beat(break_up_over(A, B, Topic),
      $text("[A] breaks up with [B] over [Topic]")).
+beat(break_up(A,B),
+     $text("[A] and [B] break up.")).
+beat(argue_over(A, B, Topic),
+     $text("[A] argues with [B] over [Topic]")).
 beat(profess_love(A, B),
      $text("[A] professes their love to [B]")).
 

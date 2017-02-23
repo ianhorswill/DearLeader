@@ -15,7 +15,6 @@ compile_htn_rules :-
 compile_htn(Pattern) :-
    forall(clause(Pattern, Body),
 	  compile_htn_declaration(Pattern, Body)).
-
 compile_htn_declaration(Pattern, _Body) :-
    goal_expansion(Pattern, Expansion),
    ensure_randomizable(Expansion),

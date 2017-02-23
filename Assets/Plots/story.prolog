@@ -1,10 +1,5 @@
 :- public story/4, story/0.
 
-story :- plan(story).
-
-story : protagonist(P) ==>
-   story(P).
-
 symmetric(lovers(P, Q),
 	  lovers(Q, P)).
 generalization(lovers(P,Q), friends(P, Q)).

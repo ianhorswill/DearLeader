@@ -32,15 +32,12 @@ extend_setup(Setup, Fact, NewSetup) :-
    all(Implication, implies(Fact, Implication), Implications),
    extend_setup_with_list([Fact | Setup], Implications, NewSetup).
 
-contradicts_setup(Fact, _) :-
+contradicts_setup(Fact, S) :-
    contradiction(Fact, Contradictor),
-   Contradictor.
-contradicts_setup(Fact, _) :-
+   memberchk(Contradictor, S).
+contradicts_setup(Fact, S) :-
    contradiction(Contradictor, Fact),
-   Contradictor.
-contradicts_setup(Fact, Setup) :-
-   member(F, Setup),
-   (contradiction(Fact, F) ; contradiction(F, Fact)).
+   memberchk(Contradictor, S).
 
 extend_setup_with_list(Setup, [], Setup).
 extend_setup_with_list(Setup, [Fact | Rest], NewSetup) :-

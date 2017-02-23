@@ -7,4 +7,7 @@ implies(protagonist(X), sympathetic(X)).
 
 contradiction(sympathetic(X), unsympathetic(X)).
 
+work_life(X) ==>
+   work_interaction(X, _).
+
 :- external sympathetic/1, unsympathetic/1.

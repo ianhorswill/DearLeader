@@ -2,7 +2,13 @@
 
 plan(Task, Plan) :-
    step_limit(1000000),
-   add_arguments(Task, [[], ReversedPlan, [], _], Goal),
+   add_arguments(Task,
+		 [ [],              % input plan is empty
+		   ReversedPlan,    % output plan
+		   [],              % input state is empty
+		   _                % ignore output state
+		 ],
+		 Goal),
    randomize(Goal),
    reverse(ReversedPlan, Plan).
 
@@ -76,6 +82,7 @@ print_setup :-
 	  writeln(X)).
 
 set_text(TextLines) :-
+   set_options_status(false),
    concat(TextLines, Text),
    set_property($main_text::text, text, Text).
 
@@ -86,11 +93,26 @@ concat([String | Rest], Out) :-
 
 :- public new_story/0, show_cast/0, show_story/0, play_story/0.
 new_story :-
-   plan(story, Story),
+   set_options_status(false),
+   initial_setup(I),
+   bind(story_setup, I),
+   catch(try_make_story,
+	 Error,
+	 begin(string_representation(Error, S),
+	       set_text(["I got an error", S]))).
+
+try_make_story :-
+   plan(story, Story) -> setup_for_story(Story) ; set_text(["I can't think of any stories with those options.  Try giving me some more freedom."]).
+
+setup_for_story(Story) :-
    assert(/story:Story),
    assert(/setup: $story_setup),
    assert(/remaining_beats:Story),
    show_cast.
+
+initial_setup(I) :-
+   /initial_setup:I, !.
+initial_setup([]).
 
 show_cast :-
    /setup:Setup,
@@ -137,3 +159,88 @@ next_beat([Beat | Rest]) :-
    set_text([Description]),
    assert(/remaining_beats:Rest).
 
+:- public show_options/0.
+
+show_options :-
+   set_text([]),
+   set_options_status(true),
+   all(String,
+       (option(O), option_label_string(O, String)),
+       Themes),
+   set_toggles(Themes).
+
+option_label_string(O, String) :-
+   O =.. [Functor, Arg],
+   word_list(String,
+	     [Functor, ":", Arg]).
+
+option(theme(T)) :-
+   theme(T).
+option(genre(T)) :-
+   genre(T).
+
+   % comma_separate(Themes, TString),
+   % all(G, genre(G), Genres),
+   % comma_separate(Genres, GString),
+   % set_text(["<b>Themes</b>", TString, "", "<b>Genres</b>", GString]).
+
+comma_separate([Singleton], Singleton).
+comma_separate([S1 | Rest], Result) :-
+   comma_separate(Rest, Suffix),
+   Result is $string.concat(S1, ", ", Suffix).
+
+options_gameobject(O) :-
+   O is $'Canvas'.transform.find("Options").gameobject.
+
+set_options_status(false) :-
+   options_gameobject(O),
+   O.activeinhierarchy,
+   read_initial_setup_from_toggles(I),
+   assert(/initial_setup:I),
+   fail.
+set_options_status(State) :-
+   options_gameobject(O),
+   O.setactive(State).
+
+all_toggles(Toggles) :-
+   all_toggle_positions(Unsorted),
+   sort(Unsorted,Sorted),
+   findall(T,
+	   member((_:T), Sorted),
+	   Toggles).
+
+all_toggle_positions(Unsorted) :-
+   options_gameobject(O),
+   T is O.transform,
+   all((Y:Child),
+       (member(X, T), Child is X.gameobject, Y is -Child.transform.position.y),
+       Unsorted).
+
+set_toggles(List) :-
+   all_toggles(T),
+   set_toggles_aux(List, T).
+
+set_toggles_aux([], []).
+set_toggles_aux([], [H | T]) :-
+   H.setactive(false),
+   set_toggles_aux([], T).
+set_toggles_aux([Name | MoreNames], [Toggle | MoreToggles]) :-
+   Label is Toggle.transform.find("Label").gameobject,
+   set_property(Label::text, "Text", Name),
+   W is $color.white,
+   set_property(Label::text, "Color", W),
+   set_toggles_aux(MoreNames, MoreToggles).
+
+read_initial_setup_from_toggles(L) :-
+   all_toggles(Ts),
+   all(~O,
+       (member(T, Ts), T.activeinhierarchy, \+ checked(T), toggle_item(T, O)),
+       L).
+
+checked(T) :-
+   T::toggle.ison.
+
+toggle_item(T, Term) :-
+   Text is (T.transform.find("Label").gameobject)::text.text.replace(":", ""),
+   word_list(Text, List),
+   Term =.. List.

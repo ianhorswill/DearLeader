@@ -45,7 +45,10 @@ compile_beat_body(_, delete: Prop, remove_all(InState, [Prop], OutState), Plan, 
    \+ list(Prop).
 
 compile_beat_body(_, preestablish: Prop, establish(Prop, Plan, NewPlan, State, NewState), Plan, NewPlan, State, NewState).
-compile_beat_body(_, setting: S, establish(setting(S), Plan, NewPlan, State, NewState), Plan, NewPlan, State, NewState).
+
+:- external setting/1.
+compile_beat_body(_, setting: S, establish(setting(S), Plan, NewPlan, State, NewState), Plan, NewPlan, State, NewState) :-
+   ensure(setting(S)).
 
 compile_beat_body(Head, text: String, true, Plan, Plan, State, State) :-
    !,

@@ -17,3 +17,6 @@ beloved_of(P, cat(P)).
 np(cat(P)) -->
    np(P), ["'s cat"].
 
+
+walkon_character(_).
+implies(walkon_character(X), character(X)).
